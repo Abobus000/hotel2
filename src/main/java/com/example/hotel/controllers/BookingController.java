@@ -25,6 +25,7 @@ public class BookingController {
 
     @GetMapping("/bookings")
     public String Bookings(Model model) {
+        bookingService.closedListBooking(bookingService.listBooking());
         model.addAttribute("bookings", bookingService.listBooking());
         model.addAttribute("user", bookingService.getUserByPrincipal());
         System.out.println(bookingService.getUserByPrincipal().getEmail());
@@ -43,6 +44,7 @@ public class BookingController {
     @GetMapping("/booking/create/{id}")
     public String createGetBooking(@PathVariable Long id, Model model) throws IOException {
         model.addAttribute("room", roomService.getRoomById(id));
+        model.addAttribute("bookedDays", bookingService.displayBookedDays(roomService.getRoomById(id).getBooking()));
         //дата сегодня и завтра
         LocalDate date = LocalDate.now();
         LocalDate date2 = date.plus(1, ChronoUnit.DAYS);
@@ -56,12 +58,9 @@ public class BookingController {
         if(roomService.сheckIfDateFree(dataStart,dataEnd, id))
         {
             bookingService.createBooking(booking, dataStart, dataEnd, roomService.getRoomById(id));
-            return "redirect:/bookings";
+            return "bookings";
         }
-        else
-        {
-            return "book-two";
-        }
+        return "book";
 
     }
 

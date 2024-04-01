@@ -12,6 +12,15 @@ import java.sql.Date;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
+import java.util.Calendar;
+import java.text.SimpleDateFormat;
+import java.util.*;
+import java.time.LocalDate;
+import java.time.format.DateTimeFormatter;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 /**
  * Класс для работы с бронированиями.
  */
@@ -139,4 +148,122 @@ public class BookingService {
     public Booking getBookingById(Long id) {
         return bookingRepository.findById(id).orElse(null);
     }
+
+
+
+    public boolean BookingForClosed(Booking booking) {
+        java.util.Date currentDate = new java.util.Date();
+        // Create a Calendar instance and set it to the current date and time
+        Calendar calendar = Calendar.getInstance();
+        calendar.setTime(currentDate);
+
+        // Extract the date portion from the Calendar
+        int year = calendar.get(Calendar.YEAR);
+        int month = calendar.get(Calendar.MONTH)+1;  // Adding 1 because months are zero-based
+        int day = calendar.get(Calendar.DAY_OF_MONTH);
+
+        // Create the NowDate variable using the extracted date values
+        String NowDate = year + "-" + month + "-" + day;
+        System.out.println("NowDate: " + currentDate);
+
+        if (booking.getDataEnd().compareTo(currentDate) < 0) {
+            return true;
+        }
+
+        return false;
+    }
+
+
+
+
+    public Booking closedBooking(Long id) {
+        bookingRepository.getById(id).setStatus(2);
+        return editBooking(bookingRepository.getById(id));
+    }
+
+    public void closedListBooking(List<Booking> bookingList) {
+        for(Booking booking: bookingList) {
+            if(booking.getStatus()!=0) {
+                if (BookingForClosed(booking)) {
+                    booking.setStatus(2);
+                    editBooking(booking);
+                }
+            }
+        }
+    }
+
+
+    public Set<String> displayBookedDays(List<Booking> bookingList) {
+        // Создаем календарь с текущей датой
+       Calendar calendar = Calendar.getInstance();
+
+        // Создаем форматтер даты для отображения даты в нужном формате
+       SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd");
+
+       // Создаем множество для хранения занятых дней
+        Set<String> bookedDays = new HashSet<>();
+
+       // Перебираем все бронирования
+        for (Booking booking : bookingList) {
+            Date startDate = booking.getDataStart();
+           Date endDate = booking.getDataEnd();
+
+           // Устанавливаем календарь на дату начала бронирования
+            calendar.setTime(startDate);
+
+            // Перебираем все дни в промежутке бронирования
+           while (calendar.getTime().before(endDate) || calendar.getTime().equals(endDate)) {
+                // Получаем строковое представление даты
+                String bookedDate = dateFormat.format(calendar.getTime());
+
+                // Добавляем занятый день в множество
+                bookedDays.add(bookedDate);
+
+                // Увеличиваем календарь на 1 день
+                calendar.add(Calendar.DAY_OF_MONTH, 1);
+           }
+        }
+        return bookedDays;
+    }
+
+
+    public Set<java.util.Date> BookedDays(List<Booking> bookingList) {
+        // Создаем календарь с текущей датой
+        Calendar calendar = Calendar.getInstance();
+
+        // Создаем форматтер даты для отображения даты в нужном формате
+        SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd");
+
+        // Создаем множество для хранения занятых дней
+        Set<java.util.Date> bookedDays = new HashSet<>();
+
+        // Перебираем все бронирования
+        for (Booking booking : bookingList) {
+            Date startDate = booking.getDataStart();
+            Date endDate = booking.getDataEnd();
+
+            // Устанавливаем календарь на дату начала бронирования
+            calendar.setTime(startDate);
+
+            // Перебираем все дни в промежутке бронирования
+            while (calendar.getTime().before(endDate) || calendar.getTime().equals(endDate)) {
+                // Получаем строковое представление даты
+                java.util.Date bookedDate = calendar.getTime();
+
+                // Добавляем занятый день в множество
+                bookedDays.add(bookedDate);
+
+                // Увеличиваем календарь на 1 день
+                calendar.add(Calendar.DAY_OF_MONTH, 1);
+            }
+        }
+        return bookedDays;
+    }
+
+
+
 }
+
+
+
+

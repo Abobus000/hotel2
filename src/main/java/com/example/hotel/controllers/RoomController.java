@@ -64,6 +64,13 @@ public class RoomController {
         return "room-info";
     }
 
+    @GetMapping("/room/create")
+    public String roomCreate(Principal principal, Model model) {
+        model.addAttribute("rooms", roomService.listRoomSet());
+        model.addAttribute("user", roomService.getUserByPrincipal(principal));
+        return "rooms-create";
+    }
+
     @PostMapping("/room/create")
     public String createRoom(@RequestParam("file1") MultipartFile file1, @RequestParam("file2") MultipartFile file2,
                                 @RequestParam("file3") MultipartFile file3, Room room, Principal principal) throws IOException {
@@ -122,7 +129,6 @@ bookingService.deleteListBooking(roomService.getRoomById(id).getBooking());
 
     @GetMapping("/bookingRooms")
     public String bookingFormRooms(Model model,Principal principal) {
-
         model.addAttribute("rooms", roomService.listRoomForAdmin());
         model.addAttribute("user", roomService.getUserByPrincipal(principal));
         return "booking-rooms-for-admin";
@@ -130,7 +136,6 @@ bookingService.deleteListBooking(roomService.getRoomById(id).getBooking());
 
     @GetMapping("/freeRooms")
     public String FreeFormRooms(Model model,Principal principal) {
-
         model.addAttribute("rooms", roomService.listFreeRoomForAdmin());
         model.addAttribute("user", roomService.getUserByPrincipal(principal));
         return "free-rooms-from-admin";

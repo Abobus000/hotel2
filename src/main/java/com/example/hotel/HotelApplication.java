@@ -4,7 +4,7 @@ import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 /**
  * Класс для запуска приложения на Spring.
- * @author Ирина Кол
+ * @autor Ирина Кол
  */
 @SpringBootApplication
 public class HotelApplication {

@@ -8,12 +8,17 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
+
+import java.io.Console;
 import java.io.IOException;
 import java.security.Principal;
 import java.sql.Date;
+import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Objects;
+
 /**
  * Класс для работы с номерами гостиницы.
  */
@@ -34,40 +39,38 @@ public class RoomService {
      * @param dateFrom - дата начала брони
      * @param dateBefore - дата окончания брони
      */
-    public List<Room> findByFreeForADate(Date dateFrom,Date dateBefore) {
 
-        List<Room> rooms=new ArrayList<>();
+    public List<Room> findByFreeForADate(Date dateFrom, Date dateBefore) {
+        List<Room> rooms = new ArrayList<>();
+
+
         for (Room room : roomRepository.findAll()) {
-            if (room.getBooking().isEmpty()) {
+            boolean isRoomFree = true;
+            if (room.getBooking().isEmpty())
+            {
                 rooms.add(room);
             }
-            else {
+            else
+            {
+                for (Booking booking : room.getBooking()) {
+                    // Проверяем, перекрывается ли бронирование с выбранным промежутком дат
+                    if(booking.getStatus()!=0&&booking.getStatus()!=2) {
 
-                for (Booking booking : room.getBooking()) {
-                    if (booking.getStatus() == 1) {
-                        if (booking.getDataEnd().getTime() > dateFrom.getTime()) {
-                            rooms.add(room);
+                        if (!checkIntervalWithinInterval(booking.getDataStart(), booking.getDataEnd(), dateFrom, dateBefore)) {
+                            isRoomFree = false;
                             break;
-                        }
-                        else {
-                            if(!сheckIfDateCopy(dateFrom,dateBefore,booking)) {
-                                rooms.remove(room);
-                            }
-                        }
-                    }
-                }
-                for (Booking booking : room.getBooking()) {
-                    if (booking.getStatus() == 1) {
-                        if ((booking.getDataEnd().getTime() < dateFrom.getTime() && booking.getDataStart().getTime() < dateBefore.getTime())) {
-                            rooms.add(room);
                         }
                     }
                 }
             }
+
+            if (isRoomFree) {
+                rooms.add(room);
+            }
         }
+
         return rooms;
     }
-
 
 
 
@@ -83,7 +86,11 @@ public class RoomService {
         Room room=getRoomById(id);
         for (Room rooms :findByFreeForADate(dateFrom,dateBefore))
         {
-            if(room.equals(rooms))
+//            if(room.equals(rooms))
+//            {
+//                return true;
+//            }
+            if(Objects.equals(room.getId(), rooms.getId()))
             {
                 return true;
             }
@@ -91,24 +98,46 @@ public class RoomService {
         return false;
     }
 
-    /**
-     * Функция проверки совпадения даты
-     * @return возвращает ложь если совпадает, или истину если не совпадает
-     * @param dateFrom - дата начала брони
-     * @param dateBefore - дата окончания брони
-     * @param booking - бронирование
-     */
-    public boolean сheckIfDateCopy(Date dateFrom,Date dateBefore, Booking booking) {
-System.out.println(booking.getDataStart());
-        System.out.println(booking.getDataEnd());
-        System.out.println(dateFrom);
-        System.out.println(dateBefore);
-            if(booking.getDataEnd().equals(dateBefore)&&booking.getDataStart().equals(dateFrom))
-            {
-                return false;
-            }
-        return true;
+//    /**
+//     * Функция проверки совпадения даты
+//     * @return возвращает ложь если совпадает, или истину если не совпадает
+//     * @param dateFrom - дата начала брони
+//     * @param dateBefore - дата окончания брони
+//     * @param booking - бронирование
+//     */
+//    public boolean сheckIfDateCopy(Date dateFrom,Date dateBefore, Booking booking) {
+//System.out.println(booking.getDataStart());
+//        System.out.println(booking.getDataEnd());
+//        System.out.println(dateFrom);
+//        System.out.println(dateBefore);
+//            if(checkIntervalWithinInterval(booking.getDataStart(),booking.getDataEnd(),dateFrom,dateBefore))
+//            {
+//                return false;
+//            }
+//        return true;
+//    }
+
+
+    public boolean checkIntervalWithinInterval(Date interval1Start, Date interval1End, Date interval2Start, Date interval2End) {
+        // Проверка, что interval1Start находится после или равен interval2Start
+        // и interval1End находится перед или равен interval2End
+        if (interval1Start.compareTo(interval2Start) >= 0 && interval1End.compareTo(interval2End) <= 0) {
+            return false;
+        }
+        // Проверка, что interval1Start находится перед interval2End
+        // и interval1End находится после interval2Start
+        else if (interval1Start.compareTo(interval2End) < 0 && interval1End.compareTo(interval2Start) > 0) {
+            return false;
+        }
+        // Промежутки времени не перекрываются
+        else {
+            return true;
+        }
     }
+
+
+
+
 
     /**
      * Функция поиска номеров по вместимости
