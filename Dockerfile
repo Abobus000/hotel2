@@ -5,8 +5,7 @@ FROM openjdk:11-jre-slim
 ENV APP_HOME /app
 
 # Создаем директорию для приложения
-RUN mkdir $APP_HOME
-WORKDIR $APP_HOME
+RUN mkdir -p $APP_HOME
 
 # Копируем JAR-файл в контейнер
 COPY target/buysell-0.0.1-SNAPSHOT.jar $APP_HOME/app.jar
@@ -18,4 +17,4 @@ ENV SPRING_PROFILES_ACTIVE h2
 EXPOSE 8080
 
 # Команда для запуска приложения
-CMD ["java", "-jar", "app.jar"]
+CMD ["java", "-jar", "/app/app.jar"]
