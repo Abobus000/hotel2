@@ -4,6 +4,7 @@ FROM openjdk:11-jre-slim
 # Устанавливаем переменную среды для указания директории приложения
 ENV APP_HOME /app
 
+RUN mvn clean package -DskipTests
 # Создаем директорию для приложения
 RUN mkdir -p $APP_HOME
 
